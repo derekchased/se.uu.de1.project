@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  sparkmaster:
+    container_name: sparkmaster
+    hostname: ${SPARK_HOST_NAME}
+    ports:
+    - 7077:7077
+    - 8080:8080
+    image: sparkaio/first:v0
+    command: ${SPARK_HOME}/sbin/start-master.sh
+    env_file:
+      - .env
+  sparkworker1:
+    container_name: sparkworker1
+    depends_on: 
+    - sparkmaster
+    ports:
+    - 8081:8081
+    image: sparkaio/first:v0
+    command: ${SPARK_HOME}/sbin/start-worker.sh ${SPARK_MASTER}
+    env_file:
+      - .env
+  sparkworker2:
+    container_name: sparkworker2
+    depends_on: 
+    - sparkmaster
+    ports:
+    - 8082:8081
+    image: sparkaio/first:v0
+    command: ${SPARK_HOME}/sbin/start-worker.sh ${SPARK_MASTER}
+    env_file:
+      - .env

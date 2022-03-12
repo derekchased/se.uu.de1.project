@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  sparkmaster:
+    hostname: sparkmaster
+    ports:
+    - 8080:8080
+    image: sparkaio/first:v0
+    command: /usr/local/spark/sbin/start-master.sh
+    networks:
+      - spark-net
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.node==sparkmaster"
+  sparkworker:
+    hostname: sparkworker
+    depends_on: 
+    - sparkmaster
+    image: sparkaio/first:v0
+    command: /usr/local/spark/sbin/start-worker.sh spark://sparkmaster:7077
+    ports:
+      - 8081:8081
+    networks:
+      - spark-net
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.node==sparkworker"
+      mode: replicated
+      replicas: 2
+networks:
+  spark-net:
+    driver: overlay
+    
