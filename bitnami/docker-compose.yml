@@ -1,0 +1,41 @@
+version: '3.7'
+services:
+  spark:
+    image: bitnami/spark:latest
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - 7077:7077
+      - 8080:8080
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.node==sparkmaster"
+  spark-worker:
+    image: docker.io/bitnami/spark:latest
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      # - SPARK_WORKER_MEMORY=1G
+      # - SPARK_WORKER_CORES=1
+      # - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      # - SPARK_RPC_ENCRYPTION_ENABLED=no
+      # - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      # - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.node==sparkworker"
+      mode: replicated
+      replicas: 2
+  jupyter:
+    image: jupyter/pyspark-notebook
+    ports:
+      - 8888:8888
+      - 4040:4040
