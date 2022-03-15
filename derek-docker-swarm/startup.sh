@@ -32,6 +32,18 @@ systemctl enable docker.service
 systemctl enable containerd.service
 
 
+## Make data directory for app 
+
+mkdir reddit
+
+## Make data directory docker volume bind
+
+mkdir reddit/data
+
+## Copy reddit files from VM volume snapshot into reddit directory data directory docker volume bind
+
+cp <VOLUME PATH/*> reddit/data
+
 # Clone github here??
 
 mkdir g13;
@@ -40,7 +52,7 @@ cd g13;
 
 # Build image
 
-docker build -t sparkaio/first:v0 .
+# docker build -t sparkaio/first:v0 .
 
 ## A) Start Swarm Manager
 # expose ports
@@ -55,11 +67,14 @@ docker swarm init --advertise-addr <IP ADDRESS OF MANAGER NODE>
 ## B) Add Swarm Nodes, run this command on each VM worker
 
 # this is from the output when we create the manager
-docker swarm join --token SWMTKN-1-22qmn80cdqfsjshbqbwjnkyvkqjoqyh1gjc0llvivhyt7cp3xm-6y5ouzk5jj9455unkw0ntuzpn 130.238.28.102:2377
+docker swarm join --token <token>
 
 # you can also get this link if you lose it running 
-docker swarm join-token worker
+# docker swarm join-token worker
 
+## Label docker nodes
+
+docker node update ...
 
 ## Deploy stack to swarm
 

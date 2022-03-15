@@ -49,4 +49,10 @@ print(df.rdd.getNumPartitions())
 
 data = spark_session.read.csv(path="uk-macroeconomic-data.csv", sep=",", header=True)
 
-print(data)
+print(data.show())
+
+data.printSchema()
+
+print(data.count())
+
+print(data.rdd.getNumPartitions())
