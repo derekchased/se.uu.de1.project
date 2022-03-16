@@ -12,8 +12,9 @@ services:
     ports:
       - 7077:7077
       - 8080:8080
-      - 4040:4040
-      # - "4040-4049:4040-4049"
+      # - 4040:4040
+      - 18080:18080
+      - "4040-4049:4040-4049"
     volumes:
       - type: bind
         source: /home/ubuntu/reddit/app
@@ -21,6 +22,8 @@ services:
       - type: bind
         source: /home/ubuntu/reddit/volume
         target: /opt/bitnami/spark/reddit-volume
+      - /home/ubuntu/reddit/app/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - spark-history:/opt/bitnami/spark/spark-history:rw
     deploy:
       placement:
         constraints:
@@ -45,10 +48,13 @@ services:
       - type: bind
         source: /home/ubuntu/reddit/volume
         target: /opt/bitnami/spark/reddit-volume
+      # - /home/ubuntu/reddit/app/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - spark-history:/opt/bitnami/spark/spark-history:rw
     deploy:
       placement:
         constraints:
           - "node.labels.node==sparkworker"
       mode: replicated
       replicas: 2
-    
+volumes:
+  spark-history:
