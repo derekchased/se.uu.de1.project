@@ -12,7 +12,7 @@ from operator import add
 import json
 
 spark_session = SparkSession.builder.master("spark://sparkapp:7077")\
-.appName("simon_converted_1")\
+.appName("derek_worker_test")\
 .config("spark.dynamicAllocation.enabled", True)\
 .config("spark.dynamicAllocation.shuffleTracking.enabled",True)\
 .config("spark.shuffle.service.enabled", False)\
@@ -34,7 +34,7 @@ spark_context.setLogLevel("ERROR")
 
 import json
 
-posts = spark_context.textFile("reddit/data/RC_2011-08.bz2").map(lambda x: json.loads(x))
+posts = spark_context.textFile("reddit-volume/RC_2009-08").map(lambda x: json.loads(x))
 
 
 # ### Print a sample from the loaded JSON file

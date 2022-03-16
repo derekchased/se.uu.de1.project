@@ -1,5 +1,18 @@
 # Data Engineering 1 Project Group 13
 
+
+
+reddit
+- docker-compose.yml
+- app
+reddit/app
+- project.py
+- data
+reddit/app/data
+- data files
+
+
+
 ## Instances
 
 docker swarm join --token SWMTKN-1-5t5tgg1juzbx9sosad14ivdpt8gg4effnczb30f4jd1sela6e2-7eebp378nhp6um1jnsd3h9xve 130.238.29.153:2377
