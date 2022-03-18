@@ -8,6 +8,7 @@ sftp-config.json
 *.bz2
 *.zst
 !RC_2006-03.bz2
+volume
 
 # Distribution / packaging
 .Python
