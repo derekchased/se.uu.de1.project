@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# a) Copy this file into ~ wget https://raw.githubusercontent.com/derekchased/se.uu.de1.project/master/startup_master.sh
+# b) Change permissions of this file chmod u+x startup_master.sh
+# c) Run this script ./startup_master.sh
+
 # Move into reddit if not already there
 
 cd reddit;
@@ -23,9 +27,9 @@ sudo docker swarm init
 sudo node ls
 
 # 5. Label docker nodes - Do this manually using container ids
-# docker node update --addlabel <CONTAINER ID of master node> "sparkmaster"
-# docker node update --addlabel <CONTAINER ID OF ALL WORKER NODES> "sparkworker"
+# sudo docker node update --label-add node=sparkmaster <CONTAINER ID of master node>
+# sudo docker node update --label-add node=sparkworker <CONTAINER ID OF worker node> 
 
 # 6. Deploy stack to swarm - Do this manually when everything is ready
 
-# docker stack deploy -c <COMPOSE FILE docker-compose.yml> <APP NAMEsparkapp>
+# sudo docker stack deploy -c <COMPOSE FILE docker-compose.yml> <APP NAMEsparkapp>

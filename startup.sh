@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# a) Copy this file into ~
+# a) Copy this file into ~ wget https://raw.githubusercontent.com/derekchased/se.uu.de1.project/master/startup.sh
 # b) Change permissions of this file chmod u+x startup.sh
 # c) Run this script ./startup.sh
 
@@ -36,9 +36,9 @@ mkdir reddit;
 
 cd reddit;
 
-# 5. Make volume directory
+# 5. Make volume directory 
 
-mkdir volume
+mkdir volume;
 
 # 6. Mount volume - Do this manually using correct path to volume
 # sudo lsblk -f
