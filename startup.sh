@@ -1,61 +1,83 @@
+#!/bin/bash
 
-# Switch to root user
+# 1. Update VM
 
-sudo bash;
+sudo apt update;
 
-### Update VM ###
+sudo apt -y upgrade;
 
-apt update;
+ # 2. Install Docker
 
-apt -y upgrade;
-
-### Install Required Packages
-
-apt install apt-transport-https ca-certificates curl software-properties-common -y;
-
-### Install Docker ###
+sudo apt install apt-transport-https ca-certificates curl software-properties-common -y;
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg |sudo apt-key add -;
 
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable";
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable";
 
-apt-get update;
+sudo apt-get update;
 
-apt install docker-ce -y;
+sudo apt install docker-ce -y;
 
-apt install docker-compose -y;
+sudo apt install docker-compose -y;
 
-## Config docker launch on reboot
+# 3. Config docker launch on reboot
 
-systemctl enable docker.service
+sudo systemctl enable docker.service;
 
-systemctl enable containerd.service
+sudo systemctl enable containerd.service;
+
+# 4. Make data directory for reddit app 
+
+mkdir reddit;
+
+cd reddit;
+
+# 5. Make volume directory
+
+mkdir volume
+
+# 6. Mount volume - Do this manually using correct path to volume
+# sudo mount <PATH TO VOLUME /dev/vdb> ./volume
 
 
-## Make data directory for reddit app 
 
-mkdir reddit
 
-## Move into app directory
 
-cd reddit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Copy docker compose file from VM volume snapshot into reddit app directory
 
-cp <VOLUME PATH/docker-compose.yml> reddit
+# cp <VOLUME PATH/docker-compose.yml> reddit
 
 ## Make data directory docker volume bind
 
-mkdir data
+mkdir data;
 
 ## Copy reddit files from VM volume snapshot into reddit directory data directory docker volume bind
 
-cp <VOLUME PATH/*> reddit/data
+# cp <VOLUME PATH/*> reddit/data
 
 
 ## A) Start Swarm Manager
 
-docker swarm init
+# docker swarm init
 
 # docker swarm init --advertise-addr <IP ADDRESS OF MANAGER NODE>
 # docker swarm init --advertise-addr 130.238.28.102
@@ -67,16 +89,16 @@ docker swarm init
 ## B) Add Swarm Nodes, run this command on each VM worker
 
 # this is from the output when we create the manager
-docker swarm join --token <token>
+# docker swarm join --token <token>
 
 # you can also get this link if you lose it running 
 # docker swarm join-token worker
 
 ## Label docker nodes
 
-docker node update --addlabel <container id of master node> "sparkmaster"
-docker node update --addlabel <container id of all worker nodes> "sparkworker"
+# docker node update --addlabel <container id of master node> "sparkmaster"
+# docker node update --addlabel <container id of all worker nodes> "sparkworker"
 
 ## Deploy stack to swarm 
 
-docker stack deploy -c 
+# docker stack deploy -c 
