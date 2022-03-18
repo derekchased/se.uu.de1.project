@@ -5,25 +5,24 @@ services:
     hostname: sparkapp
     environment:
       - SPARK_MODE=master
-      # - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      # - SPARK_RPC_ENCRYPTION_ENABLED=no
-      # - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      # - SPARK_SSL_ENABLED=no
     ports:
       - 7077:7077
       - 8080:8080
-      # - 4040:4040
+      - 4040:4040
       - 18080:18080
-      - "4040-4049:4040-4049"
+      # - "4040-4049:4040-4049"
     volumes:
       - type: bind
         source: /home/ubuntu/reddit/app
-        target: /opt/bitnami/spark/reddit
+        target: /opt/bitnami/spark/app
       - type: bind
         source: /home/ubuntu/reddit/volume
-        target: /opt/bitnami/spark/reddit-volume
-      - /home/ubuntu/reddit/app/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - spark-history:/opt/bitnami/spark/spark-history:rw
+        target: /opt/bitnami/spark/volume
+      - type: bind
+        source: /home/ubuntu/reddit/output
+        target: /opt/bitnami/spark/output
+      # - /home/ubuntu/reddit/app/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      # - spark-history:/opt/bitnami/spark/spark-history:rw
     deploy:
       placement:
         constraints:
@@ -35,26 +34,19 @@ services:
       - SPARK_MASTER_URL=spark://spark:7077
       # - SPARK_WORKER_MEMORY=1G
       # - SPARK_WORKER_CORES=1
-      # - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      # - SPARK_RPC_ENCRYPTION_ENABLED=no
-      # - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      # - SPARK_SSL_ENABLED=no
     depends_on:
       - spark
     volumes:
       - type: bind
-        source: /home/ubuntu/reddit/app
-        target: /opt/bitnami/spark/reddit
-      - type: bind
         source: /home/ubuntu/reddit/volume
-        target: /opt/bitnami/spark/reddit-volume
+        target: /opt/bitnami/spark/volume
       # - /home/ubuntu/reddit/app/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - spark-history:/opt/bitnami/spark/spark-history:rw
+      # - spark-history:/opt/bitnami/spark/spark-history:rw
     deploy:
       placement:
         constraints:
           - "node.labels.node==sparkworker"
       mode: replicated
-      replicas: 2
-volumes:
-  spark-history:
+      replicas: 3
+# volumes:
+  # spark-history:
