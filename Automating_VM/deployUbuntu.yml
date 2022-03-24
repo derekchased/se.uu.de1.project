@@ -1,0 +1,153 @@
+hosts: localhost
+name: DeployUbuntu.yml
+gather_facts: false
+vars:
+  TempDir:                   /tmp
+  WorkingDir:                /tmp/Ubuntu20
+  UbuntuISO:                 ubuntu-20.04.2-live-server-amd64.iso
+  UbuntuISO_URL:             https://releases.ubuntu.com/20.04/   # Ubuntu ISO URL
+  UbuntuNewISO:              ubuntu2004.iso                       # Ubuntu custom ISO name
+  vCenterServer:             vcenter.demo.local                   # vCenter FQDN
+  vCenterUser:               administrator@vsphere.local          # vCenter username
+  vCenterPassword:           VMware1!                             # vCenter password
+  DataCenter:                SDDC                                 # vCenter datacenter
+  vSphereCluster:            Lab-Cluster                          # vCenter cluster
+  VMFolder:                  Management                           # vCenter VM folder
+  Datastore:                 Shared_VMs                           # vSphere datastore              
+  DatastoreDir:              /SDDCLab-ISO-Folder                  # vSphere datastore ISO directory                            
+  UbuntuVMName:              ubuntu-server                          # Ubuntu VM name of the virtual machine          
+  UbuntuVMDiskSize:          20                                   # Ubuntu VM disksize in gigabytes
+  UbuntuVMMemorySize:        2048                                 # Ubuntu VM memory size in megabytes
+  UbuntuVMCPUs:              4                                    # Ubuntu VM number of CPUs 
+  UbuntuVMCPUCores:          4                                    # Ubuntu VM number of cores
+  UbuntuVMPortGroup:         VLAN-301                             # Ubuntu VM vSphere portgroup 
+  UbuntuOSHostname:          ubuntu-server                          # Ubuntu OS hostname
+  UbuntuOSPassword:          VMware1!                             # Ubuntu OS password
+
+tasks:
+  - name: Create working directory on Ansible Controller
+      ansible.builtin.file:
+        path: "{{ WorkingDir }}"
+        state: directory
+ 
+  - name: Check if Ubuntu ISO exists locally on Ansible Controller
+      ansible.builtin.stat:
+        path: "{{ TempDir }}/{{ UbuntuISO }}"
+        register: InstallerFileCheck
+ 
+  - name: Download Ubuntu ISO (if ISO file doesn't exist locally)
+      ansible.builtin.get_url:
+        url:  "{{ UbuntuISO_URL }}{{ UbuntuISO }}"
+        dest: "{{ TempDir }}/{{ UbuntuISO }}"
+      when:
+        - InstallerFileCheck.stat.exists != true
+         
+  - name: Mount Ubuntu ISO
+      ansible.posix.mount:
+        path:   "{{ WorkingDir }}/iso"
+        src:    "{{ TempDir }}/{{ UbuntuISO }}"
+        fstype: iso9660
+        opts:   ro,noauto
+        state:  mounted
+  
+  - name: Copy txt.cfg from Ubuntu ISO
+      ansible.builtin.copy: 
+        src: "{{ WorkingDir }}/iso/isolinux/txt.cfg"
+        dest: "{{ WorkingDir }}/isocopy/isolinux/"
+        mode: "666"
+ 
+  - name: Edit txt.cfg to modify append line 
+      ansible.builtin.replace:
+        dest: "{{ WorkingDir }}/isocopy/isolinux/txt.cfg"
+        regexp: 'append   initrd=/casper/initrd quiet  ---'
+        replace: 'append   initrd=/casper/initrd quiet --- autoinstall ds=nocloud;s=/cdrom/autoinstall/'
+ 
+  - name: Create directory to store user-data and meta-data
+      ansible.builtin.file:
+        path: "{{ WorkingDir }}/isocopy/autoinstall"
+        state: directory
+ 
+  - name: Copy user-data file to directory
+      ansible.builtin.template: 
+        src: ./Ubuntu_user-data.j2
+        dest: "{{ WorkingDir }}/isocopy/autoinstall/user-data"
+        mode: "666"
+ 
+  - name: Create empty meta-data file in directory
+      ansible.builtin.file:
+        path: "{{ WorkingDir }}/isocopy/autoinstall/meta-data"
+        state: touch
+        mode: "666"
+ 
+  - name: Create custom Ubuntu ISO
+      ansible.builtin.command: "xorrisofs -relaxed-filenames -J -R -o {{ TempDir }}/{{ UbuntuNewISO }} -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table {{ WorkingDir }}/iso/ {{ WorkingDir }}/isocopy/"
+      args:
+        chdir: "{{ WorkingDir }}/isocopy/"
+ 
+  - name: Unmount Ubuntu ISO
+      ansible.posix.mount:
+        path:   "{{ WorkingDir }}/iso"
+        src:    "{{ TempDir }}/{{ UbuntuISO }}"
+        fstype: iso9660
+        opts:   ro,noauto
+        state:  absent
+ 
+  - name: Upload the custom Ubuntu ISO to the vSphere datastore
+      community.vmware.vsphere_copy: 
+        hostname: "{{ vCenterServer }}"
+        username: "{{ vCenterUser }}"
+        password: "{{ vCenterPassword }}"
+        validate_certs: no
+        datacenter: "{{ DataCenter }}"
+        src: "{{ TempDir }}/{{ UbuntuNewISO }}" 
+        datastore: "{{ Datastore }}"
+        path: "{{ DatastoreDir }}/{{ UbuntuNewISO }}"
+ 
+  - name: Deploy Ubuntu VM
+      community.vmware.vmware_guest:
+        hostname: "{{ vCenterServer }}"
+        username: "{{ vCenterUser }}"
+        password: "{{ vCenterPassword }}"
+        validate_certs: no
+        name: "{{ UbuntuVMName }}"
+        state: poweredon
+        guest_id: ubuntu64Guest
+        cluster: "{{ vSphereCluster }}"
+        datacenter: "{{ DataCenter }}"
+        folder: "{{ VMFolder }}"
+        disk:
+        - size_gb: "{{ UbuntuVMDiskSize }}"
+          type: thin
+          datastore: "{{ Datastore }}"
+        hardware:
+          memory_mb: "{{ UbuntuVMMemorySize }}"
+          num_cpus: "{{ UbuntuVMCPUs }}"
+          num_cpu_cores_per_socket: "{{ UbuntuVMCPUCores }}"
+          scsi: paravirtual
+        networks:
+          - name: "{{ UbuntuVMPortGroup }}"
+            device_type: vmxnet3
+        cdrom:
+          - controller_number: 0
+            unit_number: 0
+            type: iso
+            iso_path: "[{{ Datastore }}] {{ DatastoreDir }}/{{ UbuntuNewISO }}"
+            state: present
+        annotation: | 
+                    *** Auto-Deployed by Ansible ***
+                    Username: {{ UbuntuOSUser }}
+                    Password: {{ UbuntuOSPassword }}
+ 
+  - name: Start checking if the Ubuntu VM is ready
+      community.vmware.vmware_guest_info:
+        hostname: "{{ vCenterServer }}"
+        username: "{{ vCenterUser }}"
+        password: "{{ vCenterPassword }}"
+        datacenter: "{{ DataCenter }}"
+        validate_certs: no
+        name: "{{ UbuntuVMName }}"
+        schema: vsphere
+      register: vm_facts
+      until: vm_facts.instance.guest.hostName is search(UbuntuOSHostname)
+      retries: 30
+      delay: 60

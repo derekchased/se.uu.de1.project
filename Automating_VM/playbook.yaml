@@ -1,0 +1,27 @@
+# playbook.yml file to execute shell scripts using ansible.
+# File executes tasks copy+command to separate out the stdout and stderr result keys.
+# File needs fix on the execution of the startup.sh script.
+
+---
+- name: Transfer and execute a script.
+  hosts: all
+  remote_user: ubuntu
+  become: yes
+  tasks:
+     - name: Transfer the script
+       copy: src=startup_master.sh dest=/home/ubuntu mode=0777
+
+     - name: Transfer the startup script
+       copy: src=startup.sh dest=/home/ubuntu mode=0777
+
+     - name: Transfer the worker script
+       copy: src=startup_worker.sh dest=/home/ubuntu mode=0777
+
+     - name : Execute the startup script
+       command: sh /home/ubuntu/startup.sh
+
+     - name: Execute the script
+       command: sh /home/ubuntu/startup_master.sh
+
+     - name: Excecute the worker script
+       command: sh /home/ubuntu/startup_worker
