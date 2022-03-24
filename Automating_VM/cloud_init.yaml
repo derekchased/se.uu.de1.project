@@ -1,4 +1,4 @@
-#cloud_init file
+#cloud_initfile
 
 apt_mirror: http://mirror.rackspace.com/ubuntu/
 package_upgrade: true
